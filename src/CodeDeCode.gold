@@ -1,0 +1,9 @@
+using gold.**
+
+procedure main(args:String[]) begin	
+	coder:= Coder.createTransducer()
+   	deCoder:=DeCoder.createTransducer()
+  	Utilities.testCodeDecode(coder, deCoder)	
+end
+
+

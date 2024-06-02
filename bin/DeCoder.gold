@@ -1,0 +1,76 @@
+using gold.**
+
+procedure main(args:String[]) begin
+  	decoder:= createTransducer()
+	Utilities.test(decoder)
+end
+
+
+function createTransducer():ITransducer begin
+	Q := (
+			(('a'‥'d')∪{Ø})×
+			(('a'‥'d')∪{Ø})×
+			(('a'‥'d')∪{Ø})×
+			{true, false}×
+			{true, false}×
+			(0‥3)
+		)∪{⟨'I', 'I', 'I', false, false, 0⟩, ⟨'E', 'E', 'E', 'E', 'E', 0⟩}
+	Σ:= ('a'‥'d')∪{'!', '#', '*'}
+	O := ('a'‥'d')∪{'!', '#'}
+	q₀:=⟨'I', 'I', 'I', false, false, 0⟩
+	F:= Q\{⟨'E', 'E', 'E', 'E', 'E', 0⟩}  
+	return GDeterministicTransducer(Q,Σ,O,q₀,F,δ,g,h)
+end
+
+function δ(⟨char1, char2, char3, isEven, isEqualToPrevious, index⟩,σ) begin
+	
+	if ⟨char1, char2, char3, isEven, isEqualToPrevious, index⟩=⟨'E', 'E', 'E', 'E', 'E', 0⟩ then return ⟨'E', 'E', 'E', 'E', 'E', 0⟩
+		
+	elseif ⟨char1, char2, char3, isEven, isEqualToPrevious, index⟩=⟨Ø, Ø, Ø, true, true, 3⟩ then return ⟨Ø, Ø, Ø, true, true, 3⟩	
+	elseif σ='#' and index=3 then return ⟨Ø, Ø, Ø, true, true, 3⟩
+	
+	elseif ⟨char1, char2, char3, isEven, isEqualToPrevious, index⟩=⟨'I', 'I', 'I', false, false, 0⟩ and σ∈('a'‥'d') then return ⟨σ, Ø, Ø, false, false, 1⟩
+	elseif char1∈('a'‥'d') and char2=Ø and char3=Ø and σ∈('a'‥'d') then return ⟨char1, σ, Ø, false, false, 2⟩
+	elseif char1∈('a'‥'d') and char2∈('a'‥'d') and char3=Ø and σ∈('a'‥'d') then return ⟨char1, char2, σ, false, false, 3⟩
+	
+	elseif σ='!' and ⟨char1, char2, char3, isEven, isEqualToPrevious, index⟩!=⟨'E', 'E', 'E', 'E', 'E', 0⟩ and ⟨char1, char2, char3, isEven, isEqualToPrevious, index⟩!=⟨'I', 'I', 'I', false, false, 0⟩ then return ⟨char1, char2, char3, !isEven, isEqualToPrevious, index⟩
+	
+	elseif σ='*' and ⟨char1, char2, char3, isEven, isEqualToPrevious, index⟩!=⟨'E', 'E', 'E', 'E', 'E', 0⟩ and ⟨char1, char2, char3, isEven, isEqualToPrevious, index⟩!=⟨'I', 'I', 'I', false, false, 0⟩ then return ⟨char1, char2, char3, isEven, isEqualToPrevious, index⟩
+	
+	elseif char1∈('a'‥'d') and char2∈('a'‥'d') and char3∈('a'‥'d') and index=3 and σ∈('a'‥'d') and char1=σ then return ⟨σ, char2, char3, isEven, true, 1⟩
+	elseif char1∈('a'‥'d') and char2∈('a'‥'d') and char3∈('a'‥'d') and index=3 and σ∈('a'‥'d') and char1!=σ then return ⟨σ, char2, char3, isEven, false, 1⟩
+	elseif char1∈('a'‥'d') and char2∈('a'‥'d') and char3∈('a'‥'d') and index=1 and σ∈('a'‥'d') and char2=σ then return ⟨char1, σ, char3, isEven, isEqualToPrevious, 2⟩
+	elseif char1∈('a'‥'d') and char2∈('a'‥'d') and char3∈('a'‥'d') and index=1 and σ∈('a'‥'d') and char2!=σ then return ⟨char1, σ, char3, isEven, false, 2⟩
+	elseif char1∈('a'‥'d') and char2∈('a'‥'d') and char3∈('a'‥'d') and index=2 and σ∈('a'‥'d') and char3=σ and isEven and isEqualToPrevious=false then return ⟨char1, char2, σ, isEven, isEqualToPrevious, 3⟩ // Para verificar que si se esta en una posicion par la cadena no sea igual a la anterior (porque en ese caso deberia haber un *)
+	elseif char1∈('a'‥'d') and char2∈('a'‥'d') and char3∈('a'‥'d') and index=2 and σ∈('a'‥'d') and char3=σ and !isEven then return ⟨char1, char2, σ, isEven, isEqualToPrevious, 3⟩
+	elseif char1∈('a'‥'d') and char2∈('a'‥'d') and char3∈('a'‥'d') and index=2 and σ∈('a'‥'d') and char3!=σ then return ⟨char1, char2, σ, isEven, false, 3⟩
+	
+	else return ⟨'E', 'E', 'E', 'E', 'E', 0⟩
+		
+	end
+	
+ end
+  
+function h(⟨char1, char2, char3, isEven, isEqualToPrevious, index⟩,σ) begin
+	
+	if ⟨char1, char2, char3, isEven, isEqualToPrevious, index⟩=⟨'I', 'I', 'I', false, false, 0⟩ and σ∈('a'‥'d') then return σ
+	elseif char1∈('a'‥'d') and char2=Ø and char3=Ø and σ∈('a'‥'d') then return σ
+	elseif char1∈('a'‥'d') and char2∈('a'‥'d') and char3=Ø and σ∈('a'‥'d') then return σ
+	
+	elseif σ∈{'!', '#'} then return σ
+		
+	elseif σ='*' and char1∈('a'‥'d') and char2∈('a'‥'d') and char3∈('a'‥'d') then string = new StringBuilder() return string.append(String.valueOf(char1)).append(String.valueOf(char2)).append(String.valueOf(char3))
+		
+ 	elseif char1∈('a'‥'d') and char2∈('a'‥'d') and char3∈('a'‥'d') and σ∈('a'‥'d') then return σ
+ 	
+ 	else return λ
+ 		
+ 	end
+end
+
+function g(⟨char1, char2, char3, isEven, isEqualToPrevious, index⟩) begin
+	//if index=3 and isEqualToPrevious then return isEven ? '1' : '0'
+	//else return λ
+	//end
+	return λ
+end
